@@ -3,16 +3,6 @@
 AwesomeForm makes it easy to write a form object for your views without
 polluting your model with logic that doesn't belong there.
 
-## Installation
-
-Add this to your Gemfile:
-
-    gem 'awesome_form'
-
-Or install it yourself:
-
-    $ gem install awesome_form
-
 ## Usage
 
 ### A simple Rails example
