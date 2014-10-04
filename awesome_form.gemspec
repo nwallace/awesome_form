@@ -1,13 +1,13 @@
 # coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
+lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'awesome_form/version'
+require "awesome_form/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "awesome_form"
   spec.version       = AwesomeForm::VERSION
   spec.authors       = ["Nathan Wallace"]
-  spec.email         = ["nathan.m.wallace@gmail.com"]
+  spec.email         = ["nathan@nosuchthingastwo.com"]
   spec.summary       = %q{TODO: Write a short summary. Required.}
   spec.description   = %q{TODO: Write a longer description. Optional.}
   spec.homepage      = ""
@@ -20,4 +20,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.5"
   spec.add_development_dependency "rake"
+
+  spec.add_runtime_dependency "activemodel", ">= 3.0.0"
 end
