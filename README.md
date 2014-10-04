@@ -76,7 +76,6 @@ end
 
 ## To-dos
 
-- transform attributes before assigning them to models
 - save certain models
 - require certain models in initialization
 - merge valid? definition with wrapped models (assign errors back...)

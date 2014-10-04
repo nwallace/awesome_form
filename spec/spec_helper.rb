@@ -4,4 +4,4 @@ require "pry"
 
 I18n.enforce_available_locales = false
 
-require_relative "../lib/awesome_form/form"
+Dir[File.dirname(__FILE__) + "/../lib/**/*.rb"].each { |file| require file }
