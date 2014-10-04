@@ -112,4 +112,14 @@ RSpec.describe ExampleForm do
       expect(subject.save).to be_falsey
     end
   end
+
+  describe "#save!" do
+    it "raises an exception if any model's save fails" do
+      expect(model).to receive(:save).and_return false
+      subject.model = model
+      expect {
+        subject.save!
+      }.to raise_error AwesomeForm::RecordInvalid
+    end
+  end
 end

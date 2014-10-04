@@ -76,9 +76,8 @@ end
 
 ## To-dos
 
-- save certain models
-- require certain models in initialization
 - merge valid? definition with wrapped models (assign errors back...)
-- use sensible defaults, but provide hooks for customization/overrides
+- require certain models in initialization
+- provide hooks for customization/overrides
 - if it turns out ActiveRecord deserves its own defaults, make that a
   separate module

@@ -45,5 +45,11 @@ module AwesomeForm
         .compact
         .all?(&:save)
     end
+
+    def save!
+      raise RecordInvalid unless save
+    end
   end
+
+  class RecordInvalid < StandardError; end
 end
