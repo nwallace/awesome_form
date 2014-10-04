@@ -8,7 +8,7 @@ module AwesomeForm
         include ActiveModel::Validations::Callbacks
 
         before_validation do |form|
-          self.class.send(:assignment_rules).each do |rule|
+          self.class.assignment_rules.each do |rule|
             rule.perform(form)
           end
         end
@@ -18,6 +18,7 @@ module AwesomeForm
     module ClassMethods
       def wraps(model, &block)
         attr_accessor model
+        models_to_save << model # TODO: skip if not saving
         Wrapper.new(self, model, block).call
       end
 
@@ -29,11 +30,20 @@ module AwesomeForm
         assignment_rules.concat(assignments)
       end
 
-      private
+      def models_to_save
+        @models_to_save ||= []
+      end
 
       def assignment_rules
         @assignment_rules ||= []
       end
+    end
+
+    def save
+      self.class.models_to_save
+        .map {|model| public_send(model) }
+        .compact
+        .all?(&:save)
     end
   end
 end
