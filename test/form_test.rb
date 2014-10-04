@@ -46,6 +46,23 @@ describe ExampleForm, "Example form mimicking user sign up" do
       end
     end
 
-    it "exposes #assigns to the block"
+    describe "#assigns" do
+      it "configures fields to be assigned to the model on validation" do
+        class Model
+          attr_accessor :model_field
+        end
+        ExampleForm.fields :form_field
+        ExampleForm.wraps :model do
+          assigns model_field: :form_field
+        end
+
+        model = Model.new
+        subject = ExampleForm.new(form_field: :some_value, model: model)
+        subject.valid?
+        assert_equal model.model_field, :some_value
+      end
+    end
   end
+
+  # describe "#save"
 end

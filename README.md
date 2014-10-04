@@ -86,7 +86,6 @@ end
 
 ## To-dos
 
-- automatically assign attributes onto models
 - transform attributes before assigning them to models
 - save certain models
 - require certain models in initialization
