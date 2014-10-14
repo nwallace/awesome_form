@@ -62,6 +62,10 @@ class SignUpForm
                 Subscription.new(newsletter_id: id, user: user)
               end
              }
+
+      includes_errors email:     :email,
+                      password:  :password,
+                      birthdate: :birth_year
   end
 end
 
@@ -76,8 +80,7 @@ end
 
 ## To-dos
 
-- merge valid? definition with wrapped models (assign errors back...)
-- require certain models in initialization
+- make it possible to define certain models as required for initialization
 - provide hooks for customization/overrides
-- if it turns out ActiveRecord deserves its own defaults, make that a
-  separate module
+  - if it turns out ActiveRecord deserves its own defaults, make that a
+    separate module

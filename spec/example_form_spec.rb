@@ -7,7 +7,7 @@ class ExampleForm
   validates :field_1, presence: true
   wraps :model do
     assigns model_field_1: :field_1,
-            model_field_2: -> { "no-arg proc"  },
+            model_field_2: -> { "no-arg proc" },
             model_field_3: ->(form) {
               raise unless form.is_a?(ExampleForm)
               "one-arg proc"
@@ -17,11 +17,16 @@ class ExampleForm
               raise unless model.is_a?(ExampleModel)
               "two-arg proc"
             }
+
+    includes_errors model_field_1: :field_1,
+                    model_field_2: :field_2
   end
 end
 
 class ExampleModel
+  include ActiveModel::Validations
   attr_accessor :model_field_1, :model_field_2, :model_field_3, :model_field_4
+  validates :model_field_1, format: /\A[^\s]*\Z/, allow_blank: true
 end
 
 RSpec.describe ExampleForm do
@@ -46,6 +51,9 @@ RSpec.describe ExampleForm do
       subject.field_1 = nil
       expect(subject).not_to be_valid
       expect(subject.errors[:field_1]).to include "can't be blank"
+    end
+
+    it "assigns model errors back to the form for fields" do
     end
   end
 
@@ -87,6 +95,15 @@ RSpec.describe ExampleForm do
         subject = ExampleForm.new(model: model)
         subject.valid?
         expect(model.model_field_4).to eq "two-arg proc"
+      end
+    end
+
+    describe "#includes_errors" do
+      it "takes a field on the model and a field on the form to share errors" do
+        subject.model = model
+        subject.field_1 = "has spaces"
+        subject.valid?
+        expect(subject.errors[:field_1]).to eq ["is invalid"]
       end
     end
   end

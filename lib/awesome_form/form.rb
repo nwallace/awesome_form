@@ -12,6 +12,17 @@ module AwesomeForm
             rule.perform(form)
           end
         end
+
+        after_validation do |form|
+          self.class.models_to_save.each do |model_name|
+            if model=form.public_send(model_name)
+              model.valid?
+            end
+          end
+          self.class.error_inclusions.each do |inclusion|
+            inclusion.include_errors(form)
+          end
+        end
       end
     end
 
@@ -26,16 +37,24 @@ module AwesomeForm
         attr_accessor *fields
       end
 
-      def add_assignment_rules(assignments)
-        assignment_rules.concat(assignments)
-      end
-
       def models_to_save
         @models_to_save ||= []
       end
 
       def assignment_rules
         @assignment_rules ||= []
+      end
+
+      def error_inclusions
+        @error_inclusions ||= []
+      end
+
+      def add_assignment_rules(assignments)
+        assignment_rules.concat(assignments)
+      end
+
+      def add_error_inclusions(inclusions)
+        error_inclusions.concat(inclusions)
       end
     end
 

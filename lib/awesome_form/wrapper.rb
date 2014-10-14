@@ -16,5 +16,12 @@ module AwesomeForm
       end
       @form_class.add_assignment_rules assignments
     end
+
+    def includes_errors(field_mappings)
+      inclusions = field_mappings.map do |model_field, form_field|
+        ErrorInclusion.new(@model_name, model_field, form_field)
+      end
+      @form_class.add_error_inclusions inclusions
+    end
   end
 end
