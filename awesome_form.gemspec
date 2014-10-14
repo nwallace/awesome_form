@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = AwesomeForm::VERSION
   spec.authors       = ["Nathan Wallace"]
   spec.email         = ["nathan@nosuchthingastwo.com"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{Easily wrap your models in form objects to keep business logic where it belongs.}
+  spec.description   = %q{Provides a DSL for creating form objects that wrap model classes.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
