@@ -27,6 +27,10 @@ module AwesomeForm
         def initialize(field_assignments={})
           is_a_model = ->(key, val) { self.class.models_to_save.include?(key) }
           model_assignments = field_assignments.select(&is_a_model)
+          missing_args = self.class.models_to_save - model_assignments.keys
+          unless missing_args.empty?
+            raise ArgumentError, "Missing argument(s) #{missing_args}"
+          end
           other_assignments = field_assignments.reject(&is_a_model)
           super(model_assignments)
           self.class.reverse_assignment_rules.each do |rule|

@@ -88,7 +88,7 @@ end
 
 ## To-dos
 
-- make it possible to define certain models as required for initialization
 - provide hooks for customization/overrides
   - if it turns out ActiveRecord deserves its own defaults, make that a
     separate module
+- implement associations (`has_many`, etc) to permit `fields_for`

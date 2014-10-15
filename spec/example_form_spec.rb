@@ -56,7 +56,7 @@ RSpec.describe ExampleForm do
   let(:model) { ExampleModel.new }
   let(:value) { double("some value") }
 
-  subject { ExampleForm.new }
+  subject { ExampleForm.new(model: model) }
 
   describe ".fields" do
     it "takes names of fields to define on the form" do
@@ -75,28 +75,32 @@ RSpec.describe ExampleForm do
       expect(subject.errors[:field_1]).to include "can't be blank"
     end
 
-    it "assigns model errors back to the form for fields" do
-    end
+    it "assigns model errors back to the form for fields"
   end
 
   describe ".wraps" do
     it "declares an object the form wraps" do
-      subject.model = model
       expect(subject.model).to eq model
     end
 
     it "takes a block to execute for configuration" do
       expect {
         catch(:ran) do
-          ExampleForm.wraps(:slinky) { throw :ran }
+          class NewExampleForm
+            include AwesomeForm::Form
+            wraps(:slinky) { throw :ran }
+          end
           raise "This line should not execute"
         end
       }.not_to raise_error
     end
 
     it "takes an option to use for naming" do
-      subject.model = model
       expect(subject.to_model).to eq :to_model
+    end
+
+    it "requires wrapped models for initialization" do
+      expect { described_class.new }.to raise_error ArgumentError
     end
 
     describe "#assigns" do
