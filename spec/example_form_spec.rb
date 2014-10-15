@@ -3,30 +3,39 @@ require_relative "spec_helper"
 class ExampleForm
   include AwesomeForm::Form
 
-  fields :field_1, :field_2
+  fields :field_1, :field_2, :field_5, :field_6
   validates :field_1, presence: true
-  wraps :model do
-    assigns model_field_1: :field_1,
-            model_field_2: -> { "no-arg proc" },
-            model_field_3: ->(form) {
-              raise unless form.is_a?(ExampleForm)
-              "one-arg proc"
-            },
-            model_field_4: ->(form, model) {
-              raise unless form.is_a?(ExampleForm)
-              raise unless model.is_a?(ExampleModel)
-              "two-arg proc"
-            }
-
-    includes_errors model_field_1: :field_1,
-                    model_field_2: :field_2
+  wraps :model, use_for_naming: true do
+    assigns :model_field_1, to: :field_1
+    assigns :model_field_2, to: -> { "no-arg proc" }
+    assigns :model_field_3, to: ->(form) { "one-arg proc" },
+               reverse: ->(form, model) { "two-arg proc" }
+    assigns :model_field_3, to: ->(form) {
+                 raise unless form.is_a?(ExampleForm)
+                 "one-arg proc"
+               }
+    assigns :model_field_4, to: ->(form, model) {
+                 raise unless form.is_a?(ExampleForm)
+                 raise unless model.is_a?(ExampleModel)
+                 "two-arg proc"
+               }
+    assigns :model_field_5, to: :field_5, include_errors: true, reverse: :field_6
+    assigns :model_field_6, to: :field_6, include_errors: false, reverse: nil
   end
 end
 
 class ExampleModel
   include ActiveModel::Validations
-  attr_accessor :model_field_1, :model_field_2, :model_field_3, :model_field_4
+
+  attr_accessor :model_field_1, :model_field_2, :model_field_3, :model_field_4,
+                :model_field_5, :model_field_6
   validates :model_field_1, format: /\A[^\s]*\Z/, allow_blank: true
+  validates :model_field_5, length: { maximum: 1 }
+  validates :model_field_6, length: { maximum: 1 }
+
+  def to_model
+    :to_model
+  end
 end
 
 RSpec.describe ExampleForm do
@@ -72,6 +81,11 @@ RSpec.describe ExampleForm do
       }.not_to raise_error
     end
 
+    it "takes an option to use for naming" do
+      subject.model = model
+      expect(subject.to_model).to eq :to_model
+    end
+
     describe "#assigns" do
       it "configures fields to be assigned to the model on validation" do
         subject = ExampleForm.new(field_1: value, model: model)
@@ -96,14 +110,29 @@ RSpec.describe ExampleForm do
         subject.valid?
         expect(model.model_field_4).to eq "two-arg proc"
       end
-    end
 
-    describe "#includes_errors" do
-      it "takes a field on the model and a field on the form to share errors" do
-        subject.model = model
-        subject.field_1 = "has spaces"
-        subject.valid?
-        expect(subject.errors[:field_1]).to eq ["is invalid"]
+      describe "error inclusion" do
+        it "can include errors from model fields onto the form" do
+          subject.model = model
+          subject.field_5 = "too long"
+          subject.valid?
+          expect(subject.errors[:field_5]).to eq ["is too long (maximum is 1 characters)"]
+        end
+
+        it "automatically includes errors from simple assignments unless overridden" do
+          subject.model = model
+          subject.field_1 = "has spaces"
+          subject.field_6 = "too long"
+          subject.valid?
+          expect(subject.errors[:field_1]).to eq ["is invalid"]
+          expect(subject.errors[:field_6]).to be_empty
+        end
+      end
+
+      describe "reverse assignment" do
+        it "can assign attributes from the model back to the form"
+
+        it "automatically assigns attributes from the model back to the form unless overridden"
       end
     end
   end

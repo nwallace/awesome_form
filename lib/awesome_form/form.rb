@@ -27,10 +27,11 @@ module AwesomeForm
     end
 
     module ClassMethods
-      def wraps(model, &block)
+      def wraps(model, options={}, &block)
         attr_accessor model
         models_to_save << model # TODO: skip if not saving
         Wrapper.new(self, model, block).call
+        delegate :to_model, to: model if options[:use_for_naming]
       end
 
       def fields(*fields)
@@ -49,12 +50,12 @@ module AwesomeForm
         @error_inclusions ||= []
       end
 
-      def add_assignment_rules(assignments)
-        assignment_rules.concat(assignments)
+      def add_assignment_rule(assignment_rule)
+        assignment_rules << assignment_rule
       end
 
-      def add_error_inclusions(inclusions)
-        error_inclusions.concat(inclusions)
+      def add_error_inclusion(error_inclusion)
+        error_inclusions << error_inclusion
       end
     end
 

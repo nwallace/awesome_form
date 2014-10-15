@@ -10,18 +10,14 @@ module AwesomeForm
       instance_eval(&@block)
     end
 
-    def assigns(field_mappings)
-      assignments = field_mappings.map do |model_field, form_field|
-        AssignmentRule.new(@model_name, model_field, form_field)
+    def assigns(model_field, options)
+      to = options.fetch(:to)
+      rule = AssignmentRule.new(@model_name, model_field, to)
+      @form_class.add_assignment_rule rule
+      if options.fetch(:include_errors, to.is_a?(Symbol))
+        inclusion = ErrorInclusion.new(@model_name, model_field, to)
+        @form_class.add_error_inclusion inclusion
       end
-      @form_class.add_assignment_rules assignments
-    end
-
-    def includes_errors(field_mappings)
-      inclusions = field_mappings.map do |model_field, form_field|
-        ErrorInclusion.new(@model_name, model_field, form_field)
-      end
-      @form_class.add_error_inclusions inclusions
     end
   end
 end

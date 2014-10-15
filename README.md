@@ -16,7 +16,8 @@ class SignUpForm
   validates :password, confirmation: true
 
   wraps :user do
-     assigns email: :email, password: :password
+     assigns :email,    to: :email
+     assigns :password, to: :password
   end
 end
 
@@ -52,20 +53,27 @@ class SignUpForm
   validates :password, confirmation: true
 
   wraps :user do
-     assigns email:    :email,
-             password: :password,
-             birthdate: ->(form) {
-               Date.new(form.birth_year, form.birth_month, form.birth_day)
-             },
-             subscriptions: ->(form, user) {
-               form.newsletter_ids.map do |id|
-                Subscription.new(newsletter_id: id, user: user)
-              end
-             }
-
-      includes_errors email:     :email,
-                      password:  :password,
-                      birthdate: :birth_year
+     assigns :email,     to: :email
+     assigns :password,  to: :password
+     assigns :birthdate,
+               to: ->(form) {
+                 Date.new(form.birth_year, form.birth_month, form.birth_day)
+               },
+               reverse: ->(form, user) {
+                 form.birth_year  = user.birthdate.year
+                 form.birth_month = user.birthdate.month
+                 form.birth_day   = user.birthdate.day
+               },
+               include_errors: :birth_year
+     assigns :subscriptions,
+               to: ->(form, user) {
+                 form.newsletter_ids.map do |id|
+                   Subscription.new(newsletter_id: id, user: user)
+                   end
+               },
+               reverse: ->(form, user) {
+                 form.newsletter_ids = user.subscriptions.pluck(:newsletter_id)
+               }
   end
 end
 
