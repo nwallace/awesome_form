@@ -3,29 +3,42 @@ require_relative "spec_helper"
 class ExampleForm
   include AwesomeForm::Form
 
-  fields :field_1, :field_2, :field_5, :field_6
+  no_arg = -> {
+    "no-arg proc"
+  }
+  one_arg = ->(form) {
+    raise unless form.is_a?(ExampleForm)
+    "one-arg proc"
+  }
+  two_arg = ->(form, model) {
+    raise unless form.is_a?(ExampleForm)
+    raise unless model.is_a?(ExampleModel)
+    "two-arg proc"
+  }
+  assign_field_2 = ->(form) {
+    raise unless form.is_a?(ExampleForm)
+    form.field_2 = "one-arg proc reverse"
+  }
+  assign_field_3 = ->(form, model) {
+    raise unless form.is_a?(ExampleForm)
+    raise unless model.is_a?(ExampleModel)
+    form.field_3 = "two-arg proc reverse"
+  }
+
+  fields :field_1, :field_2, :field_3, :field_4, :field_5, :field_6
   validates :field_1, presence: true
   wraps :model, use_for_naming: true do
     assigns :model_field_1, to: :field_1
-    assigns :model_field_2, to: -> { "no-arg proc" }
-    assigns :model_field_3, to: ->(form) { "one-arg proc" },
-               reverse: ->(form, model) { "two-arg proc" }
-    assigns :model_field_3, to: ->(form) {
-                 raise unless form.is_a?(ExampleForm)
-                 "one-arg proc"
-               }
-    assigns :model_field_4, to: ->(form, model) {
-                 raise unless form.is_a?(ExampleForm)
-                 raise unless model.is_a?(ExampleModel)
-                 "two-arg proc"
-               }
+    assigns :model_field_2, to: no_arg, reverse: assign_field_2
+    assigns :model_field_3, to: one_arg, reverse: assign_field_3
+    assigns :model_field_4, to: two_arg
     assigns :model_field_5, to: :field_5, include_errors: true, reverse: :field_6
-    assigns :model_field_6, to: :field_6, include_errors: false, reverse: nil
+    assigns :model_field_6, to: :field_6, include_errors: false, reverse: false
   end
 end
 
 class ExampleModel
-  include ActiveModel::Validations
+  include ActiveModel::Model
 
   attr_accessor :model_field_1, :model_field_2, :model_field_3, :model_field_4,
                 :model_field_5, :model_field_6
@@ -130,9 +143,27 @@ RSpec.describe ExampleForm do
       end
 
       describe "reverse assignment" do
-        it "can assign attributes from the model back to the form"
+        let(:model) do
+          ExampleModel.new(model_field_1: "model val 1",
+                           model_field_5: "model val 5",
+                           model_field_6: "model val 6")
+        end
 
-        it "automatically assigns attributes from the model back to the form unless overridden"
+        subject { ExampleForm.new(model: model) }
+
+        it "can assign attributes from the model back to the form with simple assignment" do
+          expect(subject.field_6).to eq model.model_field_5
+        end
+
+        it "can assign attributes from the model back to the form with procs" do
+          expect(subject.field_2).to eq "one-arg proc reverse"
+          expect(subject.field_3).to eq "two-arg proc reverse"
+          expect(subject.field_4).to be_nil
+        end
+
+        it "automatically assigns attributes from the model back to the form unless overridden" do
+          expect(subject.field_1).to eq model.model_field_1
+        end
       end
     end
   end

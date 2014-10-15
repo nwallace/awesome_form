@@ -23,6 +23,17 @@ module AwesomeForm
             inclusion.include_errors(form)
           end
         end
+
+        def initialize(field_assignments={})
+          is_a_model = ->(key, val) { self.class.models_to_save.include?(key) }
+          model_assignments = field_assignments.select(&is_a_model)
+          other_assignments = field_assignments.reject(&is_a_model)
+          super(model_assignments)
+          self.class.reverse_assignment_rules.each do |rule|
+            rule.perform(self)
+          end
+          super(other_assignments)
+        end
       end
     end
 
@@ -50,12 +61,20 @@ module AwesomeForm
         @error_inclusions ||= []
       end
 
+      def reverse_assignment_rules
+        @reverse_assignment_rules ||= []
+      end
+
       def add_assignment_rule(assignment_rule)
         assignment_rules << assignment_rule
       end
 
       def add_error_inclusion(error_inclusion)
         error_inclusions << error_inclusion
+      end
+
+      def add_reverse_assignment_rule(reverse_assignment_rule)
+        reverse_assignment_rules << reverse_assignment_rule
       end
     end
 
