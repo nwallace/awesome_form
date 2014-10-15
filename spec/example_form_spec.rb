@@ -53,10 +53,10 @@ end
 
 RSpec.describe ExampleForm do
 
-  let(:model) { ExampleModel.new }
+  let(:example_model) { ExampleModel.new }
   let(:value) { double("some value") }
 
-  subject { ExampleForm.new(model: model) }
+  subject { ExampleForm.new(model: example_model) }
 
   describe ".fields" do
     it "takes names of fields to define on the form" do
@@ -80,7 +80,7 @@ RSpec.describe ExampleForm do
 
   describe ".wraps" do
     it "declares an object the form wraps" do
-      expect(subject.model).to eq model
+      expect(subject.model).to eq example_model
     end
 
     it "takes a block to execute for configuration" do
@@ -105,39 +105,37 @@ RSpec.describe ExampleForm do
 
     describe "#assigns" do
       it "configures fields to be assigned to the model on validation" do
-        subject = ExampleForm.new(field_1: value, model: model)
+        subject = ExampleForm.new(field_1: value, model: example_model)
         subject.valid?
-        expect(model.model_field_1).to eq value
+        expect(example_model.model_field_1).to eq value
       end
 
       it "can use procs for more complex assignments" do
-        subject = ExampleForm.new(model: model)
+        subject = ExampleForm.new(model: example_model)
         subject.valid?
-        expect(model.model_field_2).to eq "no-arg proc"
+        expect(example_model.model_field_2).to eq "no-arg proc"
       end
 
       it "the procs can take the form as an argument" do
-        subject = ExampleForm.new(model: model)
+        subject = ExampleForm.new(model: example_model)
         subject.valid?
-        expect(model.model_field_3).to eq "one-arg proc"
+        expect(example_model.model_field_3).to eq "one-arg proc"
       end
 
       it "the procs can take the form and the wrapped model as arguments" do
-        subject = ExampleForm.new(model: model)
+        subject = ExampleForm.new(model: example_model)
         subject.valid?
-        expect(model.model_field_4).to eq "two-arg proc"
+        expect(example_model.model_field_4).to eq "two-arg proc"
       end
 
       describe "error inclusion" do
         it "can include errors from model fields onto the form" do
-          subject.model = model
           subject.field_5 = "too long"
           subject.valid?
           expect(subject.errors[:field_5]).to eq ["is too long (maximum is 1 characters)"]
         end
 
         it "automatically includes errors from simple assignments unless overridden" do
-          subject.model = model
           subject.field_1 = "has spaces"
           subject.field_6 = "too long"
           subject.valid?
@@ -147,16 +145,16 @@ RSpec.describe ExampleForm do
       end
 
       describe "reverse assignment" do
-        let(:model) do
+        let(:example_model) do
           ExampleModel.new(model_field_1: "model val 1",
                            model_field_5: "model val 5",
                            model_field_6: "model val 6")
         end
 
-        subject { ExampleForm.new(model: model) }
+        subject { ExampleForm.new(model: example_model) }
 
         it "can assign attributes from the model back to the form with simple assignment" do
-          expect(subject.field_6).to eq model.model_field_5
+          expect(subject.field_6).to eq example_model.model_field_5
         end
 
         it "can assign attributes from the model back to the form with procs" do
@@ -166,7 +164,7 @@ RSpec.describe ExampleForm do
         end
 
         it "automatically assigns attributes from the model back to the form unless overridden" do
-          expect(subject.field_1).to eq model.model_field_1
+          expect(subject.field_1).to eq example_model.model_field_1
         end
       end
     end
@@ -174,33 +172,35 @@ RSpec.describe ExampleForm do
 
   describe "#save" do
     before do
-      allow(model).to receive(:save)
-      subject.model = model
+      allow(example_model).to receive(:save)
+      subject.model = example_model
     end
 
     it "saves the wrapped models" do
-      expect(model).to receive(:save)
+      expect(example_model).to receive(:save)
       subject.save
     end
 
     it "returns true if all models saved" do
-      expect(model).to receive(:save).and_return true
+      expect(example_model).to receive(:save).and_return true
       expect(subject.save).to be_truthy
     end
 
     it "returns false if any model didn't save" do
-      expect(model).to receive(:save).and_return false
+      expect(example_model).to receive(:save).and_return false
       expect(subject.save).to be_falsey
     end
   end
 
   describe "#save!" do
     it "raises an exception if any model's save fails" do
-      expect(model).to receive(:save).and_return false
-      subject.model = model
+      expect(example_model).to receive(:save).and_return false
+      subject.model = example_model
       expect {
         subject.save!
       }.to raise_error AwesomeForm::RecordInvalid
     end
   end
+
+  it_should_behave_like "ActiveModel"
 end
