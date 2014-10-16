@@ -75,7 +75,11 @@ RSpec.describe ExampleForm do
       expect(subject.errors[:field_1]).to include "can't be blank"
     end
 
-    it "assigns model errors back to the form for fields"
+    it "assigns model errors back to the form for fields" do
+      subject.field_1 = "has spaces"
+      expect(subject).not_to be_valid
+      expect(subject.errors[:field_1]).to include "is invalid"
+    end
   end
 
   describe ".wraps" do
@@ -174,9 +178,16 @@ RSpec.describe ExampleForm do
     before do
       allow(example_model).to receive(:save)
       subject.model = example_model
+      subject.field_1 = "value"
     end
 
-    it "saves the wrapped models" do
+    it "runs validations" do
+      subject.field_1 = nil
+      expect(subject.save).to be_falsey
+      expect(subject.errors[:field_1]).to include "can't be blank"
+    end
+
+    it "saves the wrapped models if validations pass" do
       expect(example_model).to receive(:save)
       subject.save
     end
@@ -190,9 +201,13 @@ RSpec.describe ExampleForm do
       expect(example_model).to receive(:save).and_return false
       expect(subject.save).to be_falsey
     end
+
+    it "transacts the save operations in case one fails"
   end
 
   describe "#save!" do
+    before { subject.field_1 = "value" }
+
     it "raises an exception if any model's save fails" do
       expect(example_model).to receive(:save).and_return false
       subject.model = example_model

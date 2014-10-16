@@ -13,16 +13,7 @@ module AwesomeForm
           end
         end
 
-        after_validation do |form|
-          self.class.models_to_save.each do |model_name|
-            if model=form.public_send(model_name)
-              model.valid?
-            end
-          end
-          self.class.error_inclusions.each do |inclusion|
-            inclusion.include_errors(form)
-          end
-        end
+        validate :models_to_save_are_valid
 
         def initialize(field_assignments={})
           is_a_model = ->(key, val) { self.class.models_to_save.include?(key) }
@@ -83,14 +74,29 @@ module AwesomeForm
     end
 
     def save
-      self.class.models_to_save
-        .map {|model| public_send(model) }
-        .compact
-        .all?(&:save)
+      if valid?
+        self.class.models_to_save
+          .map {|model| public_send(model) }
+          .compact
+          .all?(&:save)
+      end
     end
 
     def save!
       raise RecordInvalid unless save
+    end
+
+    protected
+
+    def models_to_save_are_valid
+      self.class.models_to_save.each do |model_name|
+        if model=public_send(model_name)
+          model.valid?
+        end
+      end
+      self.class.error_inclusions.each do |inclusion|
+        inclusion.include_errors(self)
+      end
     end
   end
 
