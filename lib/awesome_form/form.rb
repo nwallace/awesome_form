@@ -16,18 +16,26 @@ module AwesomeForm
         validate :models_to_save_are_valid
 
         def initialize(field_assignments={})
-          is_a_model = ->(key, val) { self.class.models_to_save.include?(key) }
-          model_assignments = field_assignments.select(&is_a_model)
-          missing_args = self.class.models_to_save - model_assignments.keys
-          unless missing_args.empty?
-            raise ArgumentError, "Missing argument(s) #{missing_args}"
-          end
-          other_assignments = field_assignments.reject(&is_a_model)
+          model_assignments, other_assignments =
+            validate_and_split_args!(field_assignments)
           super(model_assignments)
           self.class.reverse_assignment_rules.each do |rule|
             rule.perform(self)
           end
           super(other_assignments)
+        end
+
+        private
+
+        def validate_and_split_args!(args)
+          is_a_model = ->(key, val) { self.class.models_to_save.include?(key.to_sym) }
+          model_assignments = args.select(&is_a_model)
+          missing_args = self.class.models_to_save - model_assignments.keys.map(&:to_sym)
+          unless missing_args.empty?
+            raise ArgumentError, "Missing argument(s) #{missing_args.map(&:inspect).join(", ")}"
+          end
+          other_assignments = args.reject(&is_a_model)
+          [model_assignments, other_assignments]
         end
       end
     end

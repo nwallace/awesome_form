@@ -107,6 +107,11 @@ RSpec.describe ExampleForm do
       expect { described_class.new }.to raise_error ArgumentError
     end
 
+    it "is indifferent to string or symbol keys" do
+      expect { described_class.new(model: example_model) }.not_to raise_error
+      expect { described_class.new("model" => example_model) }.not_to raise_error
+    end
+
     describe "#assigns" do
       it "configures fields to be assigned to the model on validation" do
         subject = ExampleForm.new(field_1: value, model: example_model)
