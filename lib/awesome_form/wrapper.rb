@@ -15,7 +15,8 @@ module AwesomeForm
       rule = AssignmentRule.new(@model_name, model_field, to)
       @form_class.add_assignment_rule rule
       if options.fetch(:include_errors, to.is_a?(Symbol))
-        inclusion = ErrorInclusion.new(@model_name, model_field, to)
+        error_field = options[:include_errors].is_a?(Symbol) ? options[:include_errors] : to
+        inclusion = ErrorInclusion.new(@model_name, model_field, error_field)
         @form_class.add_error_inclusion inclusion
       end
 
