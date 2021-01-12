@@ -83,6 +83,7 @@ module AwesomeForm
 
     def save
       if valid?
+        yield(self) if block_given?
         self.class.models_to_save
           .map {|model| public_send(model) }
           .compact
@@ -90,8 +91,8 @@ module AwesomeForm
       end
     end
 
-    def save!
-      raise RecordInvalid unless save
+    def save!(&block)
+      raise RecordInvalid unless save(&block)
     end
 
     protected

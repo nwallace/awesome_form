@@ -141,7 +141,7 @@ RSpec.describe ExampleForm do
         it "can include errors from model fields onto the form" do
           subject.field_5 = "too long"
           subject.valid?
-          expect(subject.errors[:field_5]).to eq ["is too long (maximum is 1 characters)"]
+          expect(subject.errors[:field_5]).to eq ["is too long (maximum is 1 character)"]
         end
 
         it "automatically includes errors from simple assignments unless overridden" do
@@ -208,10 +208,28 @@ RSpec.describe ExampleForm do
     end
 
     it "transacts the save operations in case one fails"
+
+    it "can yield to a block when everything is valid before persisting the changes" do
+      block_was_called = false
+      allow(example_model).to receive(:save).and_return(true)
+      subject.save do |*args|
+        block_was_called = true
+        expect(args).to eq [subject]
+        expect(subject.model.model_field_1).to eq "value"
+        expect(example_model).not_to have_received(:save)
+      end
+      expect(block_was_called).to be true
+      expect(example_model).to have_received(:save)
+    end
   end
 
   describe "#save!" do
     before { subject.field_1 = "value" }
+
+    it "persists the configured changes" do
+      expect(example_model).to receive(:save).and_return(true)
+      subject.save!
+    end
 
     it "raises an exception if any model's save fails" do
       expect(example_model).to receive(:save).and_return false
@@ -219,6 +237,19 @@ RSpec.describe ExampleForm do
       expect {
         subject.save!
       }.to raise_error AwesomeForm::RecordInvalid
+    end
+
+    it "can yield to a block when everything is valid before persisting the changes" do
+      block_was_called = false
+      allow(example_model).to receive(:save).and_return(true)
+      subject.save! do |*args|
+        block_was_called = true
+        expect(args).to eq [subject]
+        expect(subject.model.model_field_1).to eq "value"
+        expect(example_model).not_to have_received(:save)
+      end
+      expect(block_was_called).to be true
+      expect(example_model).to have_received(:save)
     end
   end
 
